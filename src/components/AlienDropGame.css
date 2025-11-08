@@ -1,0 +1,104 @@
+.game-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  overflow: hidden;
+     background-image: url('/bg-min1.webp'); /* путь к твоей картинке */
+  background-size: cover;   /* растягивает картинку под размер экрана */
+  background-position: center; /* центрирует */
+  background-repeat: no-repeat; /* убирает повторение */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 18px;
+  z-index: 10;
+}
+
+.play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 12px 24px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.game-over .play-button{
+      top: 110%;
+    width: 150px;
+}
+
+.game-over {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  z-index: 10;
+}
+
+.element {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.element.alien {
+  background-color: lime;
+  box-shadow: 0 0 10px lime;
+}
+
+.element.bomb {
+  background-color: red;
+  box-shadow: 0 0 10px red;
+}
+
+.element.hit {
+  transform: scale(0);
+  opacity: 0;
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+
+h1.game-title{
+    font-size: 1.5em;
+    line-height: 10px;
+    margin-top: -70%;
+    color: #fff;
+}
+
+p.game-description{
+    font-size: 1em;
+    line-height: 30px;
+    color: #fff;
+    max-width: 350px;
+    margin: 0 auto;
+    margin-bottom: 3% !important;
+    margin-top: 4%;
+}
+
+@keyframes shake {
+  0% { transform: translate(0px, 0px); }
+  25% { transform: translate(5px, 0px); }
+  50% { transform: translate(-5px, 0px); }
+  75% { transform: translate(5px, 0px); }
+  100% { transform: translate(0px, 0px); }
+}
