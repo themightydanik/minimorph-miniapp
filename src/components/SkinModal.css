@@ -1,0 +1,324 @@
+/* SkinModal.css */
+
+/* Фон модалки */
+.skin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+/* Контейнер модалки */
+.skin-modal {
+    background: #083a5e;
+    border-top: 3px solid #f6a50d;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 900px;
+  height: 80%;
+  display: flex;
+  padding: 16px;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+/* Левая часть — большой превью выбранного скина */
+.skin-left {
+  width: 50%;
+  padding-right: 16px;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.skin-left img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+
+.skin-left h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.skin-left p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+/* Кнопки Choose / Buy */
+.skin-left button {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.skin-left .choose-btn {
+        background-color: #17507a;
+        color: #bfe1fa;
+}
+
+.skin-left .buy-btn {
+  background-color: #facc15;
+  color: white;
+}
+
+/* Правая часть — сетка скинов */
+.skin-right {
+  width: 50%;
+  padding-left: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  overflow-y: auto;
+}
+
+/* Карточки скинов */
+.skin-card {
+  border-radius: 8px;
+  padding: 8px;
+  padding-bottom: 0px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  transition: border-color 0.2s;
+    border: 1px solid #1b679d;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.skin-card.selected {
+  border-color: #3b82f6;
+}
+
+.skin-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+
+.skin-card p {
+  font-size: 12px;
+  font-weight: 500;
+  color: #ebebeb;
+}
+
+/* Галочка выбранного скина */
+.skin-card .checkmark {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  color: #3b82f6;
+}
+
+/* Locked overlay */
+.skin-card .locked {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+/* Кнопка открытия окна скинов */
+.skin-open-btn {
+  position: absolute;
+  top: 40%;
+  left: calc(50% + 70px);
+  transform: translateY(-50%);
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Прокрутка правой части */
+.skin-right {
+  scrollbar-width: thin;
+  scrollbar-color: #888 transparent;
+}
+
+.skin-right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.skin-right::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 3px;
+}
+
+.skin-right::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+/* Ховер эффект на карточки скинов */
+.skin-card:hover {
+  border-color: #60a5fa;
+  transform: translateY(-2px);
+  transition: all 0.2s;
+}
+
+.skin-modal-left img{
+    max-width: 230px;
+    background: #0d324e;
+    border-radius: 15px;
+    margin-right: 15px;
+    margin-top: 9px;
+}
+
+.skin-modal-left{
+    color: #f6f6f6;
+}
+
+/* Кнопка закрытия модалки сверху по центру */
+.skin-modal-close {
+    position: absolute;
+    top: 0px;
+    left: 7%;
+    transform: translate(-50%);
+/*    background: #00000021;*/
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 24px;
+    height: 30px;
+    width: 30px;
+    text-align: center;
+    margin: 0 auto;
+}
+
+
+.skin-modal-right{
+    height: 80vh;
+    overflow-y: auto;
+    padding-right: 8px;
+    min-width: 100px;
+}
+
+.skin-card-image svg{
+    color: #16dd47;
+}
+
+@media screen and (max-width: 768px){
+    
+    .skin-open-btn {
+    position: absolute;
+    top: 35%;
+    left: calc(50% + 70px);
+    transform: translateY(-50%);
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px #0003;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;}
+    
+}
+
+@media screen and (max-width: 420px){
+    
+    .skin-open-btn {
+    position: absolute;
+    top: 40%;
+    left: calc(50% + 70px);
+    transform: translateY(-50%);
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px #0003;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;}
+    
+}
+
+
+@media screen and (max-width: 390px){
+    
+    .skin-open-btn {
+    position: absolute;
+    top: 40%;
+    left: calc(50% + 70px);
+    transform: translateY(-50%);
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px #0003;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;}
+    
+}
+
+@media screen and (max-width: 375px){
+    
+    .skin-open-btn {
+    position: absolute;
+    top: 52%;
+    left: calc(50% + 70px);
+    transform: translateY(-50%);
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px #0003;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;}
+    
+}
+
+@media screen and (max-width: 360px){
+    
+    .skin-open-btn {
+    position: absolute;
+    top: 48%;
+    left: calc(50% + 70px);
+    transform: translateY(-50%);
+    background-color: #fff;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px #0003;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;}
+    
+}
