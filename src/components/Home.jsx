@@ -54,7 +54,7 @@ const SKINS = [
 
 const normalizeId = (id) => id?.toString().replace(/^_+/, "");
 
-function Home() {
+function () {
   // === States ===
   const [telegramId, setTelegramId] = useState("demo");
   const [username, setUsername] = useState("Player");
