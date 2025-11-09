@@ -1,0 +1,294 @@
+/* components/DailyStreakModal.css */
+
+.streak-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.streak-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20px;
+  padding: 30px 20px;
+  max-width: 90%;
+  width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 2px solid #f8d06b;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.streak-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.streak-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.streak-title {
+  text-align: center;
+  color: #f8d06b;
+  font-size: 28px;
+  margin: 0 0 5px 0;
+  text-shadow: 0 2px 10px rgba(248, 208, 107, 0.5);
+}
+
+.streak-subtitle {
+  text-align: center;
+  color: #bbb;
+  font-size: 14px;
+  margin: 0 0 30px 0;
+}
+
+.streak-path {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+  padding: 0 10px;
+}
+
+.streak-day {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.streak-day.passed {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.streak-day.active {
+  background: linear-gradient(135deg, rgba(248, 208, 107, 0.15), rgba(255, 168, 0, 0.15));
+  border-color: #f8d06b;
+  box-shadow: 0 0 20px rgba(248, 208, 107, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(248, 208, 107, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(248, 208, 107, 0.5);
+  }
+}
+
+.streak-day-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.streak-day.passed .streak-day-circle {
+  background: #4caf50;
+  color: #fff;
+}
+
+.streak-day.active .streak-day-circle {
+  background: linear-gradient(135deg, #f8d06b, #ffa800);
+  color: #1a1a2e;
+  animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.streak-day-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-grow: 1;
+}
+
+.streak-day-rewards span {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.streak-current-marker {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background: #f8d06b;
+  color: #1a1a2e;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.streak-current-reward {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid #f8d06b;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.streak-current-reward h3 {
+  color: #f8d06b;
+  margin: 0 0 15px 0;
+  font-size: 18px;
+}
+
+.reward-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px 15px;
+  border-radius: 10px;
+}
+
+.reward-icon {
+  font-size: 24px;
+}
+
+.reward-value {
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.streak-claim-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8d06b, #ffa800);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 5px 15px rgba(248, 208, 107, 0.4);
+}
+
+.streak-claim-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(248, 208, 107, 0.6);
+}
+
+.streak-claim-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.streak-hint {
+  text-align: center;
+  color: #888;
+  font-size: 13px;
+  margin: 15px 0 0 0;
+}
+
+.streak-loading {
+  text-align: center;
+  color: #fff;
+  padding: 50px;
+  font-size: 18px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 500px) {
+  .streak-modal {
+    width: 95%;
+    padding: 20px 15px;
+  }
+
+  .streak-title {
+    font-size: 22px;
+  }
+
+  .streak-day {
+    padding: 10px;
+  }
+
+  .streak-day-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .reward-icon {
+    font-size: 20px;
+  }
+
+  .reward-value {
+    font-size: 14px;
+  }
+}
