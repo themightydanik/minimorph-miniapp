@@ -30,7 +30,7 @@ const PAYOUTS = {
   'pair': { stars: 3, minima: 0, type: 'small_win' }
 };
 
-const COST_PER_SPIN = 20; // Telegram Stars
+const COST_PER_SPIN = 1; // Telegram Stars
 const SPINS_PER_PURCHASE = 3;
 
 function SlotMachine({ telegramId, onClose }) {
@@ -213,15 +213,15 @@ function SlotMachine({ telegramId, onClose }) {
         }]
       };
 
-      // В реальном приложении здесь будет:
-      // await tg.showPopup({ message: 'Opening payment...' });
-      // const result = await tg.openInvoice(invoiceLink);
+      // В реальном приложении здесь будет: - используем уже
+       await tg.showPopup({ message: 'Opening payment...' });
+       const result = await tg.openInvoice(invoiceLink);
       
-      // Для демо просто добавляем спины
-      const userRef = doc(db, 'users', telegramId.toString());
-      await updateDoc(userRef, {
-        slotSpins: increment(SPINS_PER_PURCHASE)
-      });
+      // Убираем демо код
+      // const userRef = doc(db, 'users', telegramId.toString());
+      // await updateDoc(userRef, {
+      //  slotSpins: increment(SPINS_PER_PURCHASE)
+     // });
 
       setSpinsLeft(prev => prev + SPINS_PER_PURCHASE);
       setShowBuyModal(false);
