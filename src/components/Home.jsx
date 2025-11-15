@@ -1,61 +1,88 @@
-// components/Home.jsx
+// components/Home.jsx - FIXED VERSION
 import { useState, useEffect, useRef } from "react";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
+import { processReferralRewards } from "./referralRewards";
 import { X, Shirt, Check } from "lucide-react";
-import DailyStreakModal from "./DailyStreakModal";
-import SlotMachine from "./SlotMachine";
+import SlotMachinePremium from "./SlotMachinePremium";
 import "./SkinModal.css";
 
 // === Константы ===
 const getLevelInfo = (points) => {
-  const levels = [
-    { level: 1, minPoints: 0, nextPoints: 1000 },
-    { level: 2, minPoints: 1000, nextPoints: 5000 },
-    { level: 3, minPoints: 5000, nextPoints: 10000 },
-    { level: 4, minPoints: 10000, nextPoints: 50000 },
-    { level: 5, minPoints: 50000, nextPoints: 100000 },
-    { level: 6, minPoints: 100000, nextPoints: 500000 },
-    { level: 7, minPoints: 500000, nextPoints: 1000000 },
-    { level: 8, minPoints: 1000000, nextPoints: 5000000 },
-    { level: 9, minPoints: 5000000, nextPoints: 17000000 }
-  ];
+  let level = 1;
+  let nextLevelPoints = 1000;
 
-  for (let i = levels.length - 1; i >= 0; i--) {
-    if (points >= levels[i].minPoints) {
-      return { level: levels[i].level, nextLevelPoints: levels[i].nextPoints };
-    }
+  if (points >= 5000000) {
+    level = 8;
+    nextLevelPoints = 17000000;
+  } else if (points >= 1000000) {
+    level = 7;
+    nextLevelPoints = 5000000;
+  } else if (points >= 500000) {
+    level = 6;
+    nextLevelPoints = 1000000;
+  } else if (points >= 100000) {
+    level = 5;
+    nextLevelPoints = 500000;
+  } else if (points >= 50000) {
+    level = 4;
+    nextLevelPoints = 250000;
+  } else if (points >= 5000) {
+    level = 3;
+    nextLevelPoints = 10000;
+  } else if (points >= 1000) {
+    level = 2;
+    nextLevelPoints = 5000;
   }
-  return { level: 1, nextLevelPoints: 1000 };
+
+  return { level, nextLevelPoints };
 };
 
-const getMinimorphImageByLevel = (level) => {
-  const images = {
-    1: "/minimorph-icon.png",
-    2: "/minimorph-icon1-min.png",
-    3: "/minimorph-icon3-min.png",
-    4: "/minimorph-icon4-min.png",
-    5: "/minimorph-icon5-min.png",
-    6: "/minimorph-icon6.png",
-    7: "/minimorph-icon8-min.png"
-  };
-  return images[level] || images[1];
+const getCarByLevel = (level) => {
+  switch (level) {
+    case 3: return "Standard Car";
+    case 5: return "Good Car";
+    case 6: return "Comfort Car";
+    case 7: return "Premium Car";
+    case 8: return "Elite Car";
+    default: return "Basic Car";
+  }
 };
-
-const SKINS = [
-  { id: "default", name: "Starter", description: "Your first Minimorph skin.", levelRequired: 1, image: "/minimorph-icon.png" },
-  { id: "rookie", name: "Rookie", description: "Minimorph at the beginning.", levelRequired: 2, image: "/minimorph-icon1-min.png" },
-  { id: "racing", name: "Racer", description: "Formula 1 ready!", levelRequired: 3, image: "/minimorph-icon3-min.png" },
-  { id: "rebel", name: "Tech Rebel", description: "Getting closer to big leagues.", levelRequired: 4, image: "/minimorph-icon4-min.png" },
-  { id: "rockstar", name: "Rockstar", description: "Play by your own rules.", levelRequired: 5, image: "/minimorph-icon5-min.png" },
-  { id: "fighter", name: "Fighter", description: "You've come a long way.", levelRequired: 6, image: "/minimorph-icon6.png" },
-  { id: "excelsior", name: "Excelsior", description: "Welcome to the big leagues.", levelRequired: 7, image: "/minimorph-icon8-min.png" }
-];
 
 const normalizeId = (id) => id?.toString().replace(/^_+/, "");
 
+const getMinimorphImageByLevel = (level) => {
+  switch(level) {
+    case 1: return "/minimorph-icon.png";
+    case 2: return "/minimorph-icon1-min.png";
+    case 3: return "/minimorph-icon3-min.png";
+    case 4: return "/minimorph-icon4-min.png";
+    case 5: return "/minimorph-icon5-min.png";
+    case 6: return "/minimorph-icon6.png";
+    case 7: return "/minimorph-icon5-min.png";
+    case 8: return "/minimorph-icon5-min.png";
+    default: return "/minimorph-icon.png";
+  }
+};
+
+const SKINS = [
+  { id: "default", name: "Starter", description: "Your first Minimorph skin.", levelRequired: 1, price: 0, image: "/minimorph-icon.png" },
+  { id: "rookie", name: "Rookie", description: "Minimorph at the beginning of his journey. Required level: 2", levelRequired: 2, price: 0, image: "/minimorph-icon1-min.png" },
+  { id: "racing", name: "Racer", description: "Formula 1 is coming, Minima chip already used in McLaren racing cars. Required level: 3", levelRequired: 3, price: 0, image: "/minimorph-icon3-min.png" },
+  { id: "rebel", name: "Tech Rebel", description: "You are getting closer to the big leagues. Required level: 4", levelRequired: 4, price: 0, image: "/minimorph-icon4-min.png" },
+  { id: "rockstar", name: "Rockstar", description: "Play by your own rules - take what's yours. Required level: 5", levelRequired: 5, price: 0, image: "/minimorph-icon5-min.png" },
+  { id: "fighter", name: "Fighter", description: "Notorious Paw. You've come a long way, but it's not time to relax. Required level: 6", levelRequired: 6, price: 0, image: "/minimorph-icon6.png" },
+  { id: "excelsior", name: "Excelsior", description: "Welcome to the big leagues. Required level: 7", levelRequired: 7, price: 0, image: "/minimorph-icon8-min.png" },
+];
+
 function Home() {
-  // === States ===
+  // === Leaderboard ===
+  const [leaderboardVisible, setLeaderboardVisible] = useState(false);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+
+  // === User Data ===
   const [telegramId, setTelegramId] = useState("demo");
   const [username, setUsername] = useState("Player");
   const [points, setPoints] = useState(0);
@@ -64,25 +91,23 @@ function Home() {
   const [tickets, setTickets] = useState(5);
   const [level, setLevel] = useState(1);
   const [minimorphImage, setMinimorphImage] = useState("/minimorph-icon.png");
-  
-  // Новые балансы
-  const [telegramStars, setTelegramStars] = useState(0);
-  const [minimaCoins, setMinimaCoins] = useState(0);
-  
-  // UI состояния
+
+  // === Skins ===
   const [showSkinModal, setShowSkinModal] = useState(false);
   const [selectedSkin, setSelectedSkin] = useState(SKINS[0]);
   const [currentSkin, setCurrentSkin] = useState(SKINS[0]);
-  const [showDailyStreak, setShowDailyStreak] = useState(false);
+
+  // === Slot Machine ===
   const [showSlotMachine, setShowSlotMachine] = useState(false);
-  const [leaderboardVisible, setLeaderboardVisible] = useState(false);
-  
-  // Фарминг
+
+  // === Farming ===
   const [farmActive, setFarmActive] = useState(false);
   const [farmStartTime, setFarmStartTime] = useState(null);
   const farmCountdownRef = useRef("");
-  
+  const [, forceUpdate] = useState(0);
+
   const pointsRef = useRef(points);
+  const energyRef = useRef(energy);
 
   // === Инициализация Telegram ===
   useEffect(() => {
@@ -94,10 +119,19 @@ function Home() {
     setUsername(user?.username || user?.first_name || "Player");
   }, []);
 
+  // === Refs для актуальных значений ===
+  useEffect(() => {
+    pointsRef.current = points;
+  }, [points]);
+
+  useEffect(() => {
+    energyRef.current = energy;
+  }, [energy]);
+
   // === Загрузка данных пользователя ===
   useEffect(() => {
     if (!telegramId || telegramId === "demo") return;
-    
+
     const loadUserData = async () => {
       try {
         const userRef = doc(db, "users", telegramId);
@@ -105,32 +139,35 @@ function Home() {
 
         if (userSnap.exists()) {
           const data = userSnap.data();
-          
+
           setPoints(data.points || 0);
           setTps(data.tps || 0);
           setEnergy(data.energy || 60);
           setTickets(data.tickets || 5);
-          setTelegramStars(data.telegramStars || 0);
-          setMinimaCoins(data.minimaCoins || 0);
-          
+
           const { level: calcLevel } = getLevelInfo(data.points || 0);
           const finalLevel = Math.max(calcLevel, data.level || 1);
           setLevel(finalLevel);
           setMinimorphImage(getMinimorphImageByLevel(finalLevel));
 
-          // Загрузка скина
           if (data.skin) {
-            const foundSkin = SKINS.find(s => s.id === data.skin);
+            const foundSkin = SKINS.find((s) => s.id === data.skin);
             if (foundSkin) {
               setCurrentSkin(foundSkin);
               setSelectedSkin(foundSkin);
             }
           }
 
-          // Проверка Daily Streak
-          checkDailyStreak(data);
+          // Загрузка состояния фарминга
+          if (data.farmActive && data.farmStartTime) {
+            const savedTime = typeof data.farmStartTime === 'number' 
+              ? data.farmStartTime 
+              : data.farmStartTime.seconds * 1000;
+            
+            setFarmActive(true);
+            setFarmStartTime(savedTime);
+          }
         } else {
-          // Создание нового пользователя
           await initializeNewUser();
         }
       } catch (error) {
@@ -153,48 +190,19 @@ function Home() {
       tps: 0,
       telegramStars: 0,
       minimaCoins: 0,
-      slotSpins: 0,
-      slotTotalSpins: 0,
-      slotWins: 0,
-      slotTotalEarned: 0,
-      currentStreak: 0,
-      lastStreakDate: null,
       skin: SKINS[0].id,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     };
 
     await setDoc(userRef, newUserData, { merge: true });
     setPoints(newUserData.points);
     setTickets(newUserData.tickets);
-    setShowDailyStreak(true); // Показываем приветственную награду
-  };
-
-  // === Проверка Daily Streak ===
-  const checkDailyStreak = (userData) => {
-    const lastVisitDate = userData.lastStreakDate 
-      ? new Date(userData.lastStreakDate.seconds * 1000) 
-      : null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (!lastVisitDate) {
-      setShowDailyStreak(true);
-      return;
-    }
-
-    const lastVisit = new Date(lastVisitDate);
-    lastVisit.setHours(0, 0, 0, 0);
-    const daysDiff = Math.floor((today - lastVisit) / (1000 * 60 * 60 * 24));
-
-    if (daysDiff >= 1) {
-      setShowDailyStreak(true);
-    }
   };
 
   // === Восстановление энергии ===
   useEffect(() => {
     const interval = setInterval(() => {
-      setEnergy(prev => {
+      setEnergy((prev) => {
         if (prev < 60) {
           const newEnergy = Math.min(60, prev + 3);
           saveToFirebase({ energy: newEnergy });
@@ -205,17 +213,6 @@ function Home() {
     }, 15000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  // === Загрузка состояния фарминга при монтировании ===
-  useEffect(() => {
-    const savedFarmActive = localStorage.getItem("farmActive") === "true";
-    const savedFarmStartTime = localStorage.getItem("farmStartTime");
-
-    if (savedFarmActive && savedFarmStartTime) {
-      setFarmActive(true);
-      setFarmStartTime(Number(savedFarmStartTime));
-    }
   }, []);
 
   // === Обработка фарминга ===
@@ -229,7 +226,7 @@ function Home() {
 
       const effectiveElapsed = Math.min(elapsedMs, maxDurationMs);
       const intervalsPassed = Math.floor(effectiveElapsed / 60000); // каждую минуту
-      const coinsEarned = intervalsPassed * tps; // TPS поинтов в час / 60 = в минуту
+      const coinsEarned = intervalsPassed * tps;
 
       const lastAwarded = Number(localStorage.getItem("lastAwarded")) || 0;
       const newCoins = coinsEarned - lastAwarded;
@@ -241,10 +238,10 @@ function Home() {
         localStorage.setItem("lastAwarded", coinsEarned.toString());
 
         await saveToFirebase({ points: updatedPoints });
-        console.log(`💰 Farming: +${newCoins} points (${Math.floor(effectiveElapsed / 60000)} min)`);
+        console.log(`💰 Farming: +${newCoins} points`);
       }
 
-      // Проверяем завершение фарминга
+      // Проверяем завершение
       if (elapsedMs >= maxDurationMs) {
         setFarmActive(false);
         setFarmStartTime(null);
@@ -252,12 +249,13 @@ function Home() {
         localStorage.removeItem("farmActive");
         localStorage.removeItem("farmStartTime");
         localStorage.removeItem("lastAwarded");
+        await saveToFirebase({ farmActive: false, farmStartTime: null });
         console.log("✅ Farming completed!");
       }
     };
 
-    const interval = setInterval(processFarming, 30000); // каждые 30 секунд проверка
-    processFarming(); // запуск сразу
+    const interval = setInterval(processFarming, 30000);
+    processFarming();
 
     return () => clearInterval(interval);
   }, [farmActive, farmStartTime, tps]);
@@ -267,17 +265,6 @@ function Home() {
     if (!farmActive || !farmStartTime) return;
 
     const endTime = farmStartTime + 8 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    if (now >= endTime) {
-      setFarmActive(false);
-      setFarmStartTime(null);
-      farmCountdownRef.current = "";
-      localStorage.removeItem("farmActive");
-      localStorage.removeItem("farmStartTime");
-      localStorage.removeItem("lastAwarded");
-      return;
-    }
 
     const interval = setInterval(() => {
       const timeLeft = endTime - Date.now();
@@ -290,7 +277,7 @@ function Home() {
 
         if (farmCountdownRef.current !== newVal) {
           farmCountdownRef.current = newVal;
-          setFarmActive(prev => prev); // Триггерим перерендер
+          forceUpdate((x) => x + 1);
         }
       } else {
         setFarmActive(false);
@@ -299,33 +286,23 @@ function Home() {
         localStorage.removeItem("farmActive");
         localStorage.removeItem("farmStartTime");
         localStorage.removeItem("lastAwarded");
+        saveToFirebase({ farmActive: false, farmStartTime: null });
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [farmActive, farmStartTime]);
 
-  // === Активация фарминга ===
-  const activateFarming = async () => {
-    if (farmActive) {
-      alert("Farming is already active!");
-      return;
+  // === Сохранение в Firebase ===
+  const saveToFirebase = async (updates) => {
+    if (!telegramId || telegramId === "demo") return;
+
+    try {
+      const userRef = doc(db, "users", telegramId);
+      await updateDoc(userRef, updates);
+    } catch (error) {
+      console.error("Error saving to Firebase:", error);
     }
-
-    const now = Date.now();
-    setFarmActive(true);
-    setFarmStartTime(now);
-
-    localStorage.setItem("farmActive", "true");
-    localStorage.setItem("farmStartTime", now.toString());
-    localStorage.setItem("lastAwarded", "0");
-
-    await saveToFirebase({
-      farmActive: true,
-      farmStartTime: now
-    });
-
-    alert("Auto-farming activated for 8 hours! 🚀");
   };
 
   // === Обработчик тапа ===
@@ -350,61 +327,76 @@ function Home() {
     }
   };
 
-  // === Сохранение в Firebase ===
-  const saveToFirebase = async (updates) => {
-    if (!telegramId || telegramId === "demo") return;
-    
-    try {
-      const userRef = doc(db, "users", telegramId);
-      await updateDoc(userRef, updates);
-    } catch (error) {
-      console.error("Error saving to Firebase:", error);
-    }
-  };
-
-  // === Фарминг ===
+  // === Активация фарминга ===
   const activateFarming = async () => {
-    if (farmActive) return;
-    
+    if (farmActive) {
+      alert("Farming is already active!");
+      return;
+    }
+
     const now = Date.now();
     setFarmActive(true);
     setFarmStartTime(now);
-    
-    await saveToFirebase({ 
-      farmActive: true, 
-      farmStartTime: now 
+
+    localStorage.setItem("farmActive", "true");
+    localStorage.setItem("farmStartTime", now.toString());
+    localStorage.setItem("lastAwarded", "0");
+
+    await saveToFirebase({
+      farmActive: true,
+      farmStartTime: now,
     });
+
+    alert("Auto-farming activated for 8 hours! 🚀");
   };
 
   // === Рендер ===
   const { level: calculatedLevel, nextLevelPoints } = getLevelInfo(points);
+  const car = getCarByLevel(level);
   const progressToNextLevel = Math.min((points / nextLevelPoints) * 100, 100);
 
   return (
-    <div style={{ 
-      padding: "30px 20px 80px 20px",
-      backgroundImage: `url('/TG-miniapp_bg.jpg')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      width: "100vw",
-      minHeight: "100vh",
-      boxSizing: "border-box",
-      margin: 0,
-      overflow: "hidden"
-    }}>
-      {/* Приветствие и баланс */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-        <h1 style={{ 
-          background: 'rgba(255, 255, 255, 0.2)',
-          backdropFilter: 'blur(5px)',
-          borderRadius: "10px",
-          color: "#fff",
-          padding: "8px 12px",
-          fontSize: "15px",
-          margin: 0,
-          maxWidth: "165px"
-        }}>
+    <div
+      style={{
+        padding: "30px 20px 80px 20px",
+        backgroundImage: `url('/TG-miniapp_bg.jpg')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        width: "100vw",
+        minHeight: "100vh",
+        boxSizing: "border-box",
+        margin: 0,
+        overflow: "hidden",
+      }}
+    >
+      {/* Приветствие и кнопки */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "0",
+          marginBottom: "15px",
+          gap: "10px",
+        }}
+      >
+        <h1
+          style={{
+            flexGrow: 1,
+            borderRadius: "10px",
+            background: "rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            backdropFilter: "blur(5px)",
+            color: "#fff",
+            padding: "8px 12px",
+            fontSize: "15px",
+            lineHeight: 1.3,
+            margin: 0,
+            maxWidth: "165px",
+          }}
+        >
           Welcome, {username}!
         </h1>
 
@@ -416,124 +408,216 @@ function Home() {
             color: "#fff",
             border: "none",
             borderRadius: "8px",
-            cursor: "pointer"
+            cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
         >
           🎰 Slots
         </button>
       </div>
 
-      {/* Баланс и TPS */}
-      <div style={{ marginBottom: "20px", color: "#fff" }}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+      {/* Баланс монет и TPS */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: "10px",
+          marginBottom: "15px",
+          color: "#fff",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center" }}>
           <img src="/coin-icon.png" alt="Coin" style={{ width: "30px", marginRight: "8px" }} />
           <h2 style={{ fontSize: "18px", margin: 0 }}>{points} Points</h2>
         </div>
-        <div style={{ fontSize: "14px" }}>
-          🔁 TPS: <strong>{tps}</strong> | 
-          ⭐ Stars: <strong>{telegramStars}</strong> | 
-          💎 Minima: <strong>{minimaCoins}</strong>
+        <div style={{ fontSize: "16px" }}>
+          🔁 TPS: <strong>{tps}</strong>
         </div>
       </div>
 
       {/* Тапалка */}
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      <div style={{ textAlign: "center", marginBottom: "13px" }}>
         <button
           onClick={handleTap}
           style={{
             width: "250px",
             height: "250px",
-            borderRadius: "50%",
+            borderRadius: "100%",
+            fontSize: "24px",
             cursor: "pointer",
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(5px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
+            position: "relative",
+            background: "rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+            backdropFilter: "blur(5px)",
+            WebkitBackdropFilter: "blur(5px)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            color: "#fff",
           }}
         >
           <img
             src={currentSkin?.image || minimorphImage}
-            alt="Minimorph"
+            alt={`Minimorph Level ${level}`}
             style={{ width: "170px", height: "210px" }}
           />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "10px",
+              width: "100%",
+              fontSize: "14px",
+              color: "#fff",
+              left: "2%",
+            }}
+          >
+            Tap!
+          </div>
         </button>
       </div>
 
-      {/* Кнопка выбора скина */}
-      <button
-        onClick={() => setShowSkinModal(true)}
-        className="skin-open-btn"
-      >
+      {/* Кнопка выбора скинов */}
+      <button onClick={() => setShowSkinModal(true)} className="skin-open-btn">
         <Shirt size={20} />
       </button>
 
-      {/* Энергия и билеты */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <div style={{ background: "#0f3f6f", color: "#fff", borderRadius: 12, padding: "10px", flex: 1, marginRight: "10px" }}>
-          ⚡ Energy: {energy} / 60
-        </div>
-        <div style={{ background: "#0f3f6f", color: "#fff", borderRadius: 12, padding: "10px", flex: 1 }}>
-          🎟 Tickets: {tickets}
-        </div>
-      </div>
-
-      {/* Уровень */}
-      <div style={{ marginBottom: "20px", color: "#fff" }}>
-        <strong>Level {level}</strong>
-        <div style={{ backgroundColor: "#eee", height: "10px", borderRadius: "5px", overflow: "hidden", marginTop: "5px" }}>
-          <div style={{ backgroundColor: "#4caf50", width: `${progressToNextLevel}%`, height: "100%" }} />
-        </div>
-      </div>
-
-      {/* Фарминг */}
-      {!farmActive ? (
-        <button
-          onClick={activateFarming}
+      {/* Энергия и Билеты */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <div
           style={{
-            width: "100%",
-            padding: "15px",
-            backgroundColor: "#ffa800",
+            height: "45px",
+            display: "flex",
+            alignItems: "center",
+            background: "#0f3f6f",
             color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            fontSize: "16px",
-            cursor: "pointer"
+            borderRadius: 12,
+            borderBottom: "4px solid #64b5fd",
+            paddingLeft: "8px",
+            paddingRight: "8px",
           }}
         >
-          🚀 Activate Auto-Farming
-        </button>
-      ) : (
-        <div style={{
-          padding: "15px",
-          backgroundColor: "#6c757d",
-          color: "#fff",
-          borderRadius: "10px",
-          textAlign: "center"
-        }}>
-          ⏳ Farming Active
+          <img src="/energy-icon.png" alt="Energy" style={{ width: "30px", marginRight: "10px" }} />
+          <p>Energy: {energy} / 60</p>
         </div>
-      )}
 
-      {/* Модалки */}
-      {showDailyStreak && (
-        <DailyStreakModal
-          telegramId={telegramId}
-          onClose={() => setShowDailyStreak(false)}
-          onRewardClaimed={(reward) => {
-            setPoints(prev => prev + reward.points);
-            if (reward.stars > 0) setTelegramStars(prev => prev + reward.stars);
-            if (reward.minima > 0) setMinimaCoins(prev => prev + reward.minima);
+        <div
+          style={{
+            height: "45px",
+            display: "flex",
+            alignItems: "center",
+            background: "#0f3f6f",
+            color: "#fff",
+            borderRadius: 12,
+            borderBottom: "4px solid #64b5fd",
+            paddingLeft: "8px",
+            paddingRight: "8px",
           }}
-        />
-      )}
+        >
+          <img src="/ticket-icon.png" alt="Ticket" style={{ width: "30px", marginRight: "10px" }} />
+          <p>Tickets: {tickets}</p>
+        </div>
+      </div>
 
+      {/* Уровень и Машина */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+          color: "#fff",
+        }}
+      >
+        <div>
+          <strong>Level {level}</strong>
+          <div
+            style={{
+              backgroundColor: "#eee",
+              width: "150px",
+              height: "10px",
+              borderRadius: "5px",
+              overflow: "hidden",
+              marginTop: "5px",
+              color: "#fff",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#4caf50",
+                width: `${progressToNextLevel}%`,
+                height: "100%",
+              }}
+            />
+          </div>
+        </div>
+        <div>
+          <strong>🏎 Car:</strong> {car}
+        </div>
+      </div>
+
+      {/* Кнопка фарминга */}
+      <div
+        style={{
+          textAlign: "center",
+          margin: "0 auto",
+          marginTop: "30px",
+          justifyContent: "center",
+          width: "250px",
+        }}
+      >
+        {farmActive && farmCountdownRef.current ? (
+          <button
+            disabled
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#6c757d",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "not-allowed",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              width: "100%",
+            }}
+          >
+            ⏳ Farming: {farmCountdownRef.current}
+          </button>
+        ) : (
+          <button
+            onClick={activateFarming}
+            style={{
+              padding: "10px 20px",
+              backgroundColor: "#ffa800",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              width: "100%",
+            }}
+          >
+            🚀 Activate Auto-Farming
+          </button>
+        )}
+      </div>
+
+      {/* Модалка слотов */}
       {showSlotMachine && (
-        <SlotMachine
-          telegramId={telegramId}
-          onClose={() => setShowSlotMachine(false)}
-        />
+        <SlotMachinePremium telegramId={telegramId} onClose={() => setShowSlotMachine(false)} />
       )}
 
-      {/* Модалка скинов (упрощённая версия) */}
+      {/* Модалка скинов */}
       {showSkinModal && (
         <div className="skin-modal-backdrop">
           <div className="skin-modal">
@@ -547,7 +631,7 @@ function Home() {
               <button
                 onClick={async () => {
                   if (selectedSkin.levelRequired > level) {
-                    alert(`Requires level ${selectedSkin.levelRequired}`);
+                    alert(`❌ This skin requires level ${selectedSkin.levelRequired}`);
                     return;
                   }
                   setCurrentSkin(selectedSkin);
