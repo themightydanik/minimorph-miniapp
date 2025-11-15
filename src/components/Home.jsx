@@ -4,7 +4,7 @@ import { doc, setDoc, getDoc, updateDoc, increment, serverTimestamp } from "fire
 import { db } from "./firebase";
 import { processReferralRewards } from "./referralRewards";
 import { X, Shirt, Check } from "lucide-react";
-import SlotMachinePremium from "./SlotMachinePremium";
+import SlotMachinePremium from "./SlotMachine";
 import "./SkinModal.css";
 
 // === Константы ===
