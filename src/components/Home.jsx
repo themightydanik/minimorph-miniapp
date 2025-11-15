@@ -54,7 +54,7 @@ const SKINS = [
 
 const normalizeId = (id) => id?.toString().replace(/^_+/, "");
 
-function () {
+function Home() {
   // === States ===
   const [telegramId, setTelegramId] = useState("demo");
   const [username, setUsername] = useState("Player");
@@ -207,6 +207,127 @@ function () {
     return () => clearInterval(interval);
   }, []);
 
+  // === Загрузка состояния фарминга при монтировании ===
+  useEffect(() => {
+    const savedFarmActive = localStorage.getItem("farmActive") === "true";
+    const savedFarmStartTime = localStorage.getItem("farmStartTime");
+
+    if (savedFarmActive && savedFarmStartTime) {
+      setFarmActive(true);
+      setFarmStartTime(Number(savedFarmStartTime));
+    }
+  }, []);
+
+  // === Обработка фарминга ===
+  useEffect(() => {
+    if (!farmActive || !farmStartTime) return;
+
+    const processFarming = async () => {
+      const now = Date.now();
+      const elapsedMs = now - farmStartTime;
+      const maxDurationMs = 8 * 60 * 60 * 1000; // 8 часов
+
+      const effectiveElapsed = Math.min(elapsedMs, maxDurationMs);
+      const intervalsPassed = Math.floor(effectiveElapsed / 60000); // каждую минуту
+      const coinsEarned = intervalsPassed * tps; // TPS поинтов в час / 60 = в минуту
+
+      const lastAwarded = Number(localStorage.getItem("lastAwarded")) || 0;
+      const newCoins = coinsEarned - lastAwarded;
+
+      if (newCoins > 0) {
+        const updatedPoints = pointsRef.current + newCoins;
+        setPoints(updatedPoints);
+        pointsRef.current = updatedPoints;
+        localStorage.setItem("lastAwarded", coinsEarned.toString());
+
+        await saveToFirebase({ points: updatedPoints });
+        console.log(`💰 Farming: +${newCoins} points (${Math.floor(effectiveElapsed / 60000)} min)`);
+      }
+
+      // Проверяем завершение фарминга
+      if (elapsedMs >= maxDurationMs) {
+        setFarmActive(false);
+        setFarmStartTime(null);
+        farmCountdownRef.current = "";
+        localStorage.removeItem("farmActive");
+        localStorage.removeItem("farmStartTime");
+        localStorage.removeItem("lastAwarded");
+        console.log("✅ Farming completed!");
+      }
+    };
+
+    const interval = setInterval(processFarming, 30000); // каждые 30 секунд проверка
+    processFarming(); // запуск сразу
+
+    return () => clearInterval(interval);
+  }, [farmActive, farmStartTime, tps]);
+
+  // === Обновление таймера фарминга ===
+  useEffect(() => {
+    if (!farmActive || !farmStartTime) return;
+
+    const endTime = farmStartTime + 8 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (now >= endTime) {
+      setFarmActive(false);
+      setFarmStartTime(null);
+      farmCountdownRef.current = "";
+      localStorage.removeItem("farmActive");
+      localStorage.removeItem("farmStartTime");
+      localStorage.removeItem("lastAwarded");
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const timeLeft = endTime - Date.now();
+
+      if (timeLeft > 0) {
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        const newVal = `${hours}h ${minutes}m ${seconds}s`;
+
+        if (farmCountdownRef.current !== newVal) {
+          farmCountdownRef.current = newVal;
+          setFarmActive(prev => prev); // Триггерим перерендер
+        }
+      } else {
+        setFarmActive(false);
+        setFarmStartTime(null);
+        farmCountdownRef.current = "";
+        localStorage.removeItem("farmActive");
+        localStorage.removeItem("farmStartTime");
+        localStorage.removeItem("lastAwarded");
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [farmActive, farmStartTime]);
+
+  // === Активация фарминга ===
+  const activateFarming = async () => {
+    if (farmActive) {
+      alert("Farming is already active!");
+      return;
+    }
+
+    const now = Date.now();
+    setFarmActive(true);
+    setFarmStartTime(now);
+
+    localStorage.setItem("farmActive", "true");
+    localStorage.setItem("farmStartTime", now.toString());
+    localStorage.setItem("lastAwarded", "0");
+
+    await saveToFirebase({
+      farmActive: true,
+      farmStartTime: now
+    });
+
+    alert("Auto-farming activated for 8 hours! 🚀");
+  };
+
   // === Обработчик тапа ===
   const handleTap = async () => {
     if (energy <= 0) {
@@ -264,8 +385,13 @@ function () {
       padding: "30px 20px 80px 20px",
       backgroundImage: `url('/TG-miniapp_bg.jpg')`,
       backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      width: "100vw",
       minHeight: "100vh",
-      boxSizing: "border-box"
+      boxSizing: "border-box",
+      margin: 0,
+      overflow: "hidden"
     }}>
       {/* Приветствие и баланс */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
