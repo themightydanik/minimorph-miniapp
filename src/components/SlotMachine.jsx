@@ -42,12 +42,15 @@ function SlotMachine({ telegramId, onClose }) {
   const [result, setResult] = useState(null);
   const [leverPulled, setLeverPulled] = useState(false);
   const [coins, setCoins] = useState([]);
+  const [userStars, setUserStars] = useState(0); // Виртуальные звезды игрока
   const [stats, setStats] = useState({
     totalSpins: 0,
     wins: 0,
     totalEarned: 0,
     jackpots: 0
   });
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [buyMethod, setBuyMethod] = useState(null); // 'real' или 'virtual'
 
   const reelRefs = [useRef(), useRef(), useRef()];
   const leverRef = useRef();
@@ -64,6 +67,7 @@ function SlotMachine({ telegramId, onClose }) {
       if (userSnap.exists()) {
         const data = userSnap.data();
         setSpinsLeft(data.slotSpins || 0);
+        setUserStars(data.telegramStars || 0); // Загружаем виртуальные звезды
         setStats({
           totalSpins: data.slotTotalSpins || 0,
           wins: data.slotWins || 0,
@@ -202,50 +206,83 @@ function SlotMachine({ telegramId, onClose }) {
   };
 
   const buySpins = async () => {
+    setShowBuyModal(true);
+  };
+
+  const buyWithRealStars = async () => {
     try {
       const tg = window.Telegram?.WebApp;
       
       if (!tg) {
         alert('Telegram WebApp not available');
+        setShowBuyModal(false);
         return;
       }
 
-      // Создаём уникальный payload для отслеживания платежа
-      const payload = `slot_purchase_${telegramId}_${Date.now()}`;
+      // Открываем deep link для оплаты реальными Stars
+      const deepLink = `https://t.me/MinimorphBot?start=buy_slots`;
+      tg.openTelegramLink(deepLink);
+      setShowBuyModal(false);
 
-      // Создаём инвойс для Telegram Stars
-      const invoice = {
-        title: `Buy ${SPINS_PER_PURCHASE} Slot Spins`,
-        description: `Get ${SPINS_PER_PURCHASE} spins for the slot machine`,
-        payload: payload,
-        provider_token: '', // Для Telegram Stars оставляем пустым
-        currency: 'XTR',
-        prices: [{
-          label: `${SPINS_PER_PURCHASE} Spins`,
-          amount: COST_PER_SPIN
-        }]
-      };
-
-      // Отправляем инвойс (это должно открыть окно оплаты в Telegram)
-      tg.openInvoice(invoice, async (status) => {
-        if (status === 'paid') {
-          // Платёж успешен - обновляем количество спинов
+      // Начинаем проверять обновление спинов
+      const checkInterval = setInterval(async () => {
+        try {
           const userRef = doc(db, 'users', telegramId.toString());
-          await updateDoc(userRef, {
-            slotSpins: increment(SPINS_PER_PURCHASE)
-          });
-
-          setSpinsLeft(prev => prev + SPINS_PER_PURCHASE);
-          tg.showAlert(`✅ Successfully purchased ${SPINS_PER_PURCHASE} spins!`);
-        } else if (status === 'cancelled') {
-          tg.showAlert('❌ Purchase cancelled');
-        } else if (status === 'failed') {
-          tg.showAlert('❌ Purchase failed. Please try again.');
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            const currentSpins = userSnap.data().slotSpins || 0;
+            if (currentSpins > spinsLeft) {
+              setSpinsLeft(currentSpins);
+              clearInterval(checkInterval);
+              
+              if (tg.showPopup) {
+                tg.showPopup({
+                  title: 'Success!',
+                  message: `You received ${SPINS_PER_PURCHASE} spins! 🎰`,
+                  buttons: [{ type: 'ok' }]
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error checking spins:', err);
         }
-      });
+      }, 2000);
+
+      setTimeout(() => clearInterval(checkInterval), 180000);
 
     } catch (error) {
-      console.error('Error buying spins:', error);
+      console.error('Error buying with real stars:', error);
+      alert('❌ Purchase failed. Please try again.');
+    }
+  };
+
+  const buyWithVirtualStars = async () => {
+    try {
+      const cost = COST_PER_SPIN * SPINS_PER_PURCHASE;
+      
+      if (userStars < cost) {
+        alert(`❌ Not enough Stars! You need ${cost} ⭐ but have only ${userStars} ⭐`);
+        setShowBuyModal(false);
+        return;
+      }
+
+      // Списываем виртуальные звезды и добавляем спины
+      const userRef = doc(db, 'users', telegramId.toString());
+      await updateDoc(userRef, {
+        telegramStars: increment(-cost),
+        slotSpins: increment(SPINS_PER_PURCHASE)
+      });
+
+      setUserStars(prev => prev - cost);
+      setSpinsLeft(prev => prev + SPINS_PER_PURCHASE);
+      setShowBuyModal(false);
+
+      alert(`✅ Purchase successful! You spent ${cost} ⭐ from your balance and received ${SPINS_PER_PURCHASE} spins!`);
+
+    } catch (error) {
+      console.error('Error buying with virtual stars:', error);
       alert('❌ Purchase failed. Please try again.');
     }
   };
@@ -253,6 +290,7 @@ function SlotMachine({ telegramId, onClose }) {
   return (
     <div className="slot-overlay">
       <div className="slot-machine-container">
+        {/* Кнопка закрытия */}
         <button className="slot-close-btn" onClick={onClose}>✕</button>
 
         {/* Неоновая вывеска */}
@@ -268,8 +306,8 @@ function SlotMachine({ telegramId, onClose }) {
             <div className="stat-label">Spins</div>
           </div>
           <div className="stat-box">
-            <div className="stat-value">⭐ {stats.totalEarned}</div>
-            <div className="stat-label">Won</div>
+            <div className="stat-value">⭐ {userStars}</div>
+            <div className="stat-label">Your Stars</div>
           </div>
           <div className="stat-box">
             <div className="stat-value">{stats.jackpots}</div>
@@ -363,9 +401,53 @@ function SlotMachine({ telegramId, onClose }) {
           <span className="btn-text">
             Buy {SPINS_PER_PURCHASE} Spins
             <br />
-            <small>({COST_PER_SPIN} ⭐)</small>
+            <small>({COST_PER_SPIN} ⭐ each)</small>
           </span>
         </button>
+
+        {/* Модалка выбора способа оплаты */}
+        {showBuyModal && (
+          <div className="buy-modal">
+            <div className="buy-modal-content">
+              <h3>Choose Payment Method</h3>
+              <p>Buy {SPINS_PER_PURCHASE} spins for {COST_PER_SPIN * SPINS_PER_PURCHASE} ⭐</p>
+              
+              <div className="payment-options">
+                <button 
+                  className="payment-option real-stars"
+                  onClick={buyWithRealStars}
+                >
+                  <span className="option-icon">💳</span>
+                  <span className="option-text">
+                    Pay with Real Telegram Stars
+                    <br />
+                    <small>Buy with real payment</small>
+                  </span>
+                </button>
+
+                <button 
+                  className="payment-option virtual-stars"
+                  onClick={buyWithVirtualStars}
+                  disabled={userStars < (COST_PER_SPIN * SPINS_PER_PURCHASE)}
+                >
+                  <span className="option-icon">⭐</span>
+                  <span className="option-text">
+                    Pay with Your Stars Balance
+                    <br />
+                    <small>You have: {userStars} ⭐</small>
+                  </span>
+                </button>
+              </div>
+
+              <button 
+                className="cancel-btn"
+                onClick={() => setShowBuyModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Таблица выплат */}
         <div className="paytable">
