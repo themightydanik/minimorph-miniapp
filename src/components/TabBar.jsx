@@ -1,25 +1,27 @@
 // components/TabBar.jsx
 import { NavLink } from "react-router-dom";
-import { FaHome, FaFlagCheckered, FaUserFriends, FaTasks, FaShoppingCart, FaGamepad, FaLaptopCode } from "react-icons/fa";
+import { 
+  FaGlobeAmericas, 
+  FaRocket, 
+  FaCity, 
+  FaMapMarkerAlt, 
+  FaUserFriends 
+} from "react-icons/fa";
 
 const TabBar = () => {
-    
-  const tickets = Number(localStorage.getItem("tickets")) || 0;
-    
-const tabs = [
-  { to: "/", label: "Planet", icon: <FaGlobeAmericas /> },
-  { to: "/missions", label: "Missions", icon: <FaRocket /> },
-  { to: "/colony", label: "Colony", icon: <FaCity /> },
-  { to: "/locations", label: "Locations", icon: <FaMapMarkerAlt /> },
-  { to: "/friends", label: "Friends", icon: <FaUserFriends /> }
-];
+  const tabs = [
+    { to: "/", label: "Planet", icon: <FaGlobeAmericas /> },
+    { to: "/missions", label: "Missions", icon: <FaRocket /> },
+    { to: "/colony", label: "Colony", icon: <FaCity /> },
+    { to: "/locations", label: "Locations", icon: <FaMapMarkerAlt /> },
+    { to: "/friends", label: "Friends", icon: <FaUserFriends /> }
+  ];
 
   return (
     <nav style={styles.nav}>
       {tabs.map((tab) => (
         <NavLink
           to={tab.to}
-          state={tab.state}    
           key={tab.to}
           style={({ isActive }) => ({
             ...styles.link,
@@ -42,18 +44,20 @@ const styles = {
     right: 0,
     height: "60px",
     backgroundColor: "#2d2d2d",
-    borderTop: "1px solid #2d2d2d",
+    borderTop: "1px solid #3d3d3d",
     display: "flex",
     justifyContent: "space-around",
     alignItems: "center",
     zIndex: 1000,
-    paddingBottom: "5px",  },
+    paddingBottom: "5px",
+  },
   link: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     textDecoration: "none",
     fontSize: "12px",
+    transition: "all 0.2s ease",
   },
   icon: {
     fontSize: "20px",
