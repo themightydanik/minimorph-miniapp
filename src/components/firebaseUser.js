@@ -1,8 +1,7 @@
-// firebaseUser.js - UPDATED VERSION
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+// firebaseUser.js - FINAL VERSION
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
-// Убирает подчёркивания в начале
 const normalizeId = (id) => id?.toString().replace(/^_+/, "") || null;
 
 export const saveUserData = async (telegramId, data = {}) => {
@@ -11,84 +10,160 @@ export const saveUserData = async (telegramId, data = {}) => {
   const ref = doc(db, "users", cleanTelegramId);
   const snap = await getDoc(ref);
   
-  // Полная структура по умолчанию с НОВЫМИ полями
+  // 🆕 НОВАЯ СТРУКТУРА ДАННЫХ
   const defaultData = {
     // Основные данные
     username: data.username || data.first_name || `User-${cleanTelegramId}`,
-    points: 0,
     level: 1,
-    tickets: 10,
-    energy: 60,
-    tps: 0,
-    
-    // 🆕 Новые валюты
-    telegramStars: 0,        // Виртуальный баланс Stars
-    minimaCoins: 0,          // Виртуальный баланс Minima
-    
-    // 🆕 Daily Streak System
-    currentStreak: 0,        // Текущий стрик (0-7)
-    lastStreakDate: null,    // Timestamp последнего захода
-    maxStreak: 0,            // Максимальный стрик за все время
-    
-    // 🆕 Slot Machine данные
-    slotSpins: 0,            // Оставшиеся спины
-    slotTotalSpins: 0,       // Всего спинов сделано
-    slotWins: 0,             // Количество выигрышей
-    slotTotalEarned: 0,      // Всего Stars выиграно
-    slotJackpots: 0,         // Количество джекпотов
-    slotBigWins: 0,          // Количество больших выигрышей
-    
-    // Реферальная система
-    completedTasks: {},
-    earned: {},
-    invitedBy: cleanInvitedBy || null,
-    lastRecordedPoints: 0,
-    masterRewards: 0,
-    refEarnings: 0,
-    
-    // Прочее
-    purchasedCards: [],
     skin: 'default',
-    createdAt: new Date().toISOString(),
-    lastActive: new Date().toISOString(),
+    
+    // 💰 BALANCES (новая структура)
+    balances: {
+      credits: 100,      // Заменяет points
+      energy: 60,
+      morph: 0          // Premium валюта (заменяет minimaCoins)
+    },
+    
+    // 🏗️ COLONY (новая структура)
+    colony: {
+      level: 1,
+      population: 0,     // Заменяет TPS
+      income: 0,         // Credits/hour
+      buildings: {
+        core: { level: 1 },
+        mine: { level: 0 },
+        lab: { level: 0 },
+        habitat: { level: 0 },
+        spaceport: { level: 0 },
+        trading_post: { level: 0 }
+      },
+      lastCollected: null
+    },
+    
+    // 🎯 MISSIONS
+    missions: {
+      stats: {
+        totalRuns: 0,
+        bestScore: 0,
+        totalMorphEarned: 0
+      }
+    },
+    
+    // 🎰 SLOT MACHINE
+    slots: {
+      spins: 5,           // Бесплатные спины
+      totalSpins: 0,
+      wins: 0,
+      totalEarned: 0,
+      jackpots: 0,
+      bigWins: 0
+    },
+    
+    // 🔥 DAILY STREAK
+    streak: {
+      current: 0,
+      lastDate: null,
+      maxStreak: 0
+    },
+    
+    // 🎟️ TICKETS (для старых игр)
+    tickets: 7,
+    
+    // 👥 REFERRAL SYSTEM
+    referral: {
+      invitedBy: cleanInvitedBy || null,
+      earned: {},
+      totalEarnings: 0
+    },
+    
+    // 📋 TASKS
+    completedTasks: {},
+    
+    // 🕐 TIMESTAMPS
+    createdAt: serverTimestamp(),
+    lastActive: serverTimestamp()
   };
   
   if (!snap.exists()) {
-    // Создаём нового пользователя с полной структурой
-    await setDoc(ref, { ...defaultData, ...data, invitedBy: cleanInvitedBy || null });
+    // Новый пользователь
+    await setDoc(ref, { ...defaultData, ...data });
   } else {
-    // Обновляем существующего пользователя
+    // 🔄 МИГРАЦИЯ СУЩЕСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ
     const existing = snap.data();
-    const updates = { 
-      ...data,
-      lastActive: new Date().toISOString() // Обновляем время последней активности
-    };
+    const updates = { lastActive: serverTimestamp() };
     
-    // 🔧 Миграция: добавляем новые поля если их нет
-    if (existing.telegramStars === undefined) updates.telegramStars = 0;
-    if (existing.minimaCoins === undefined) updates.minimaCoins = 0;
-    if (existing.currentStreak === undefined) updates.currentStreak = 0;
-    if (existing.lastStreakDate === undefined) updates.lastStreakDate = null;
-    if (existing.maxStreak === undefined) updates.maxStreak = 0;
-    if (existing.slotSpins === undefined) updates.slotSpins = 0;
-    if (existing.slotTotalSpins === undefined) updates.slotTotalSpins = 0;
-    if (existing.slotWins === undefined) updates.slotWins = 0;
-    if (existing.slotTotalEarned === undefined) updates.slotTotalEarned = 0;
-    if (existing.slotJackpots === undefined) updates.slotJackpots = 0;
-    if (existing.slotBigWins === undefined) updates.slotBigWins = 0;
-    if (existing.skin === undefined) updates.skin = 'default';
-    
-    // Если у старого пользователя нет level — инициализируем
-    if (existing.level === undefined || existing.level === null) {
-      updates.level = 1;
+    // Миграция balances
+    if (!existing.balances) {
+      updates.balances = {
+        credits: existing.points || 0,
+        energy: existing.energy || 60,
+        morph: existing.minimaCoins || 0
+      };
     }
     
-    // Обновляем invitedBy только если его нет
-    if (!existing.invitedBy && cleanInvitedBy && cleanInvitedBy !== cleanTelegramId) {
-      updates.invitedBy = cleanInvitedBy;
+    // Миграция colony
+    if (!existing.colony) {
+      updates.colony = {
+        level: 1,
+        population: existing.tps || 0,
+        income: 0,
+        buildings: {
+          core: { level: 1 },
+          mine: { level: 0 },
+          lab: { level: 0 },
+          habitat: { level: 0 },
+          spaceport: { level: 0 },
+          trading_post: { level: 0 }
+        },
+        lastCollected: null
+      };
     }
     
-    await updateDoc(ref, updates);
+    // Миграция missions
+    if (!existing.missions) {
+      updates.missions = {
+        stats: {
+          totalRuns: 0,
+          bestScore: 0,
+          totalMorphEarned: 0
+        }
+      };
+    }
+    
+    // Миграция slots
+    if (!existing.slots) {
+      updates.slots = {
+        spins: existing.slotSpins || 5,
+        totalSpins: existing.slotTotalSpins || 0,
+        wins: existing.slotWins || 0,
+        totalEarned: existing.slotTotalEarned || 0,
+        jackpots: existing.slotJackpots || 0,
+        bigWins: existing.slotBigWins || 0
+      };
+    }
+    
+    // Миграция streak
+    if (!existing.streak) {
+      updates.streak = {
+        current: existing.currentStreak || 0,
+        lastDate: existing.lastStreakDate || null,
+        maxStreak: existing.maxStreak || 0
+      };
+    }
+    
+    // Миграция referral
+    if (!existing.referral) {
+      updates.referral = {
+        invitedBy: existing.invitedBy || null,
+        earned: existing.earned || {},
+        totalEarnings: existing.masterRewards || 0
+      };
+    }
+    
+    // Обновляем только если есть изменения
+    if (Object.keys(updates).length > 1) {
+      await updateDoc(ref, updates);
+    }
   }
 };
 
@@ -99,34 +174,18 @@ export const loadUserData = async (telegramId) => {
   return snap.exists() ? snap.data() : null;
 };
 
-// 🆕 Дополнительная утилита для обновления баланса Stars
-export const updateStarsBalance = async (telegramId, amount) => {
+// 🆕 Утилиты для работы с балансами
+export const updateBalance = async (telegramId, currency, amount) => {
   const cleanTelegramId = normalizeId(telegramId);
   const ref = doc(db, "users", cleanTelegramId);
   const snap = await getDoc(ref);
   
   if (snap.exists()) {
-    const currentStars = snap.data().telegramStars || 0;
+    const current = snap.data().balances?.[currency] || 0;
     await updateDoc(ref, {
-      telegramStars: currentStars + amount
+      [`balances.${currency}`]: current + amount
     });
-    return currentStars + amount;
-  }
-  return 0;
-};
-
-// 🆕 Дополнительная утилита для обновления баланса Minima
-export const updateMinimaBalance = async (telegramId, amount) => {
-  const cleanTelegramId = normalizeId(telegramId);
-  const ref = doc(db, "users", cleanTelegramId);
-  const snap = await getDoc(ref);
-  
-  if (snap.exists()) {
-    const currentMinima = snap.data().minimaCoins || 0;
-    await updateDoc(ref, {
-      minimaCoins: currentMinima + amount
-    });
-    return currentMinima + amount;
+    return current + amount;
   }
   return 0;
 };
