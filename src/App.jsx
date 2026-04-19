@@ -10,24 +10,18 @@ import Tasks from "./components/Tasks";
 import TabBar from "./components/TabBar";
 
 function App() {
-    
-
-
-
-
-
 
   return (
     <Router>
       <div style={{ paddingBottom: "10px" }}>
         <TabBar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/play" element={<Play />} />
-          <Route path="/minimaos" element={<MinimaOS />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/tasks" element={<Tasks />} />
-        </Routes>
+<Routes>
+  <Route path="/" element={<Planet />} />        // ✅ Новий
+  <Route path="/missions" element={<Missions />} />  // ✅ Новий
+  <Route path="/colony" element={<Colony />} />      // ✅ Новий
+  <Route path="/locations" element={<Locations />} />// ✅ Новий
+  <Route path="/friends" element={<Friends />} />    // Залишити
+</Routes>
       </div>
     </Router>
   );
