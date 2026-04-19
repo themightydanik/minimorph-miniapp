@@ -8,6 +8,7 @@ import MinimaOS from "./components/MinimaOS";
 import Friends from "./components/Friends";
 import Tasks from "./components/Tasks";
 import TabBar from "./components/TabBar";
+import Missions from './components/Missions';
 
 function App() {
 
@@ -21,6 +22,7 @@ function App() {
   <Route path="/colony" element={<Colony />} />      // ✅ Новий
   <Route path="/locations" element={<Locations />} />// ✅ Новий
   <Route path="/friends" element={<Friends />} />    // Залишити
+  <Route path="/missions" element={<Missions />} />
 </Routes>
       </div>
     </Router>
