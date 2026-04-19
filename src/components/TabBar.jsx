@@ -6,13 +6,13 @@ const TabBar = () => {
     
   const tickets = Number(localStorage.getItem("tickets")) || 0;
     
-  const tabs = [
-    { to: "/", label: "Home", icon: <FaHome /> },
-    { to: "/play", label: "Play", icon: <FaGamepad />, state: { tickets } },
-    { to: "/minimaOS", label: "MinimaOS", icon: <FaLaptopCode /> },
-    { to: "/friends", label: "Friends", icon: <FaUserFriends /> },
-    { to: "/tasks", label: "Tasks", icon: <FaTasks /> },
-  ];
+const tabs = [
+  { to: "/", label: "Planet", icon: <FaGlobeAmericas /> },
+  { to: "/missions", label: "Missions", icon: <FaRocket /> },
+  { to: "/colony", label: "Colony", icon: <FaCity /> },
+  { to: "/locations", label: "Locations", icon: <FaMapMarkerAlt /> },
+  { to: "/friends", label: "Friends", icon: <FaUserFriends /> }
+];
 
   return (
     <nav style={styles.nav}>
