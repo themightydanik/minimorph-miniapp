@@ -1,0 +1,379 @@
+/* src/components/ExpeditionRun.css */
+
+/* Prep Phase */
+.expedition-prep {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.expedition-prep h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.mission-brief {
+  font-size: 16px;
+  color: #bbb;
+  text-align: center;
+  max-width: 500px;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.prep-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+.prep-stat {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.prep-stat .label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.prep-stat .value {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.start-btn,
+.back-btn {
+  width: 100%;
+  max-width: 400px;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 5px 0;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: #fff;
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Running Phase */
+.expedition-run {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-hud {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.hud-left,
+.hud-right {
+  display: flex;
+  gap: 20px;
+}
+
+.game-canvas {
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: #0a0e27;
+  margin-bottom: 20px;
+  max-width: 100%;
+  height: auto;
+}
+
+.game-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.jump-btn {
+  padding: 15px 40px;
+  font-size: 20px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.jump-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(33, 150, 243, 0.5);
+}
+
+.game-hint {
+  font-size: 14px;
+  color: #888;
+  text-align: center;
+}
+
+/* Event Modal */
+.event-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #1a1f3a, #0a0e27);
+  border: 3px solid #ffc107;
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  z-index: 1000;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.event-modal h2 {
+  margin-top: 0;
+  font-size: 24px;
+  text-align: center;
+  color: #ffc107;
+}
+
+.event-modal p {
+  font-size: 16px;
+  color: #ccc;
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.event-choices {
+  display: flex;
+  gap: 15px;
+}
+
+.choice-btn {
+  flex: 1;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.choice-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffc107;
+  transform: translateY(-5px);
+}
+
+.choice-text {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.choice-stats {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+}
+
+/* Event Result */
+.event-result {
+  padding: 40px;
+  text-align: center;
+  animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.event-result.success h2 {
+  color: #4caf50;
+}
+
+.event-result.failure h2 {
+  color: #f44336;
+}
+
+.event-result p {
+  font-size: 18px;
+  margin-top: 15px;
+}
+
+/* Mission Complete */
+.mission-complete {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mission-complete h2 {
+  font-size: 36px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #ffc107;
+}
+
+.final-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 700px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.final-stats .stat {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.final-stats .stat.highlight {
+  border-color: #ffc107;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.final-stats .label {
+  display: block;
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.final-stats .value {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+.boost-indicator {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 16px;
+  color: #ffc107;
+  font-weight: bold;
+  padding: 15px;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 10px;
+  border: 2px solid #ffc107;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .prep-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .game-canvas {
+    width: 100%;
+  }
+  
+  .event-choices {
+    flex-direction: column;
+  }
+  
+  .final-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .jump-btn {
+    width: 100%;
+  }
+}
+
+/* Keyboard support */
+@media (hover: hover) {
+  .jump-btn {
+    display: none;
+  }
+  
+  .game-hint::after {
+    content: ' (Press SPACE to jump)';
+  }
+}
