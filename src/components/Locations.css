@@ -1,0 +1,139 @@
+/* src/components/Locations.css */
+
+.locations-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  padding: 20px;
+  padding-bottom: 80px;
+  color: #fff;
+}
+
+.locations-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.locations-header h1 {
+  font-size: 28px;
+  margin: 0 0 10px 0;
+  background: linear-gradient(135deg, #f8d06b, #ffa800);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.locations-subtitle {
+  color: #bbb;
+  font-size: 14px;
+  margin: 0;
+}
+
+.locations-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 500px;
+  margin: 0 auto 30px;
+}
+
+.location-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid;
+  border-radius: 15px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.location-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.location-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.location-info {
+  flex: 1;
+}
+
+.location-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.location-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #bbb;
+}
+
+.visit-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.visit-btn:hover {
+  transform: scale(1.05);
+}
+
+.locations-info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.locations-info h4 {
+  margin: 0 0 15px 0;
+  color: #60a5fa;
+  font-size: 16px;
+}
+
+.locations-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.locations-info li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #93c5fd;
+  line-height: 1.5;
+}
+
+.locations-info strong {
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .location-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .visit-btn {
+    width: 100%;
+  }
+}
